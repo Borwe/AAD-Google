@@ -27,6 +27,11 @@ public class InsectRecyclerAdapter extends
         this.mCursor=mCursor;
     }
 
+    public void updateCursor(Cursor mCursor){
+        this.mCursor=mCursor;
+        notifyDataSetChanged();
+    }
+
     /* ViewHolder for each insect item */
     public class InsectHolder extends RecyclerView.ViewHolder{
 

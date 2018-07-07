@@ -4,8 +4,11 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
 import android.widget.Toast;
+
+import com.google.developer.bugmaster.reminders.AlarmReceiver;
 
 public class SettingsFragment extends PreferenceFragment {
 
@@ -22,11 +25,21 @@ public class SettingsFragment extends PreferenceFragment {
         quizReminder.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object o) {
-                if(preference.isEnabled()){
-                    Toast.makeText(preference.getContext(),"yeah",Toast.LENGTH_SHORT).show();
+                if(quizReminder.isChecked()){
+                    //off
+                    AlarmReceiver.scheduleAlarm(quizReminder.getContext());
                 }else{
-                    Toast.makeText(preference.getContext(),"fuck",Toast.LENGTH_SHORT).show();
+                    //on
+                    AlarmReceiver.scheduleAlarm(quizReminder.getContext());
                 }
+                return true;
+            }
+        });
+
+        quizTimes.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object o) {
+                AlarmReceiver.scheduleAlarm(quizReminder.getContext());
                 return true;
             }
         });

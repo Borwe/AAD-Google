@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.developer.bugmaster.data.BugsContract;
 import com.google.developer.bugmaster.data.DatabaseManager;
 import com.google.developer.bugmaster.data.Insect;
 import com.google.developer.bugmaster.data.InsectRecyclerAdapter;
@@ -29,6 +30,9 @@ public class MainActivity extends AppCompatActivity implements
 
     RecyclerView recycler_view;
     Cursor mCursor;
+    InsectRecyclerAdapter insectRecyclerAdapter;
+
+    int sort_by=0; //1 for danger level in decending order, 2 for common name ascending alphabetically
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements
                 progressDialog.hide();
                 progressDialog.cancel();
 
-                InsectRecyclerAdapter insectRecyclerAdapter=
+                insectRecyclerAdapter=
                         new InsectRecyclerAdapter(mCursor);
                 RecyclerView.LayoutManager rLayoutMan=
                         new LinearLayoutManager(MainActivity.this);
@@ -92,10 +96,67 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt("sort_by",sort_by);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        sort_by=savedInstanceState.getInt("sort_by",0);
+        swapList();
+    }
+
+    private void swapList(){
+        if(sort_by==2){
+            new AsyncTask<Void,Void,Void>(){
+                Cursor mCursor;
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    mCursor=DatabaseManager
+                            .getInstance(MainActivity.this)
+                            .queryAllInsects(BugsContract.BugEntry.FRIENDLY_NAME+" DESC");
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    insectRecyclerAdapter.updateCursor(mCursor);
+                }
+            }.execute();
+        }else if(sort_by==1){
+            new AsyncTask<Void,Void,Void>(){
+                Cursor mCursor;
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    mCursor=DatabaseManager
+                            .getInstance(MainActivity.this)
+                            .queryAllInsects(BugsContract.BugEntry.DANGER_LEVEL+" ASC");
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    insectRecyclerAdapter.updateCursor(mCursor);
+                }
+            }.execute();
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_sort:
                 //TODO: Implement the sort action
+                if(sort_by!=2){
+                    sort_by=2;
+                }else if(sort_by!=1){
+                    sort_by=1;
+                }
+                swapList();
                 return true;
             case R.id.action_settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
